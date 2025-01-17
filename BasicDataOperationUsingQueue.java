@@ -4,48 +4,17 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.PriorityQueue;
+import java.util.stream.Collectors;
 
 /**
  * Клас BasicDataOperationUsingQueue надає методи для виконання основних операцiй з даними типу Character.
- * 
- * <p>Цей клас зчитує данi з файлу "list/Character.data", сортує їх та виконує пошук значення в масивi та черзi.</p>
- * 
- * <p>Основнi методи:</p>
- * <ul>
- *   <li>{@link #main(String[])} - Точка входу в програму.</li>
- *   <li>{@link #doDataOperation()} - Виконує основнi операцiї з даними.</li>
- *   <li>{@link #sortArray()} - Сортує масив Character.</li>
- *   <li>{@link #searchArray()} - Виконує пошук значення в масивi Character.</li>
- *   <li>{@link #findMinAndMaxInArray()} - Знаходить мiнiмальне та максимальне значення в масивi Character.</li>
- *   <li>{@link #searchQueue()} - Виконує пошук значення в черзi Character.</li>
- *   <li>{@link #findMinAndMaxInQueue()} - Знаходить мiнiмальне та максимальне значення в черзi Character.</li>
- *   <li>{@link #peekAndPollQueue()} - Виконує операцiї peek та poll з чергою Character.</li>
- * </ul>
- * 
- * <p>Конструктор:</p>
- * <ul>
- *   <li>{@link #BasicDataOperationUsingQueue(String[])} - iнiцiалiзує об'єкт з значенням для пошуку.</li>
- * </ul>
- * 
- * <p>Константи:</p>
- * <ul>
- *   <li>{@link #PATH_TO_DATA_FILE} - Шлях до файлу з даними.</li>
- * </ul>
- * 
- * <p>Змiннi екземпляра:</p>
- * <ul>
- *   <li>{@link #charValueToSearch} - Значення Character для пошуку.</li>
- *   <li>{@link #charArray} - Масив Character.</li>
- *   <li>{@link #charQueue} - Черга Character.</li>
- * </ul>
  */
 public class BasicDataOperationUsingQueue {
-    static final String PATH_TO_DATA_FILE = "list/Character.data";
+    static final String PATH_TO_DATA_FILE = "list/char.data";
 
     Character charValueToSearch;
     Character[] charArray;
@@ -56,11 +25,6 @@ public class BasicDataOperationUsingQueue {
         basicDataOperationUsingQueue.doDataOperation();
     }
 
-    /**
-     * Конструктор, який iнiцiалiзує об'єкт з значенням для пошуку.
-     * 
-     * @param args Аргументи командного рядка, де перший аргумент - значення для пошуку.
-     */
     BasicDataOperationUsingQueue(String[] args) {
         if (args.length == 0) {
             throw new RuntimeException("Вiдсутнє значення для пошуку");
@@ -74,9 +38,6 @@ public class BasicDataOperationUsingQueue {
         charQueue = new PriorityQueue<>(Arrays.asList(charArray));
     }
 
-    /**
-     * Виконує основнi операцiї з даними.
-     */
     private void doDataOperation() {
         searchArray();
         findMinAndMaxInArray();
@@ -93,32 +54,21 @@ public class BasicDataOperationUsingQueue {
         Utils.writeArrayToFile(charArray, PATH_TO_DATA_FILE + ".sorted");
     }
 
-    /**
-     * Сортує масив об'єктiв Character та виводить початковий i вiдсортований масиви.
-     */
     private void sortArray() {
         long startTime = System.nanoTime();
-
-        Arrays.sort(charArray);
-
+        charArray = Arrays.stream(charArray)
+                        .sorted()
+                        .toArray(Character[]::new);
         Utils.printOperationDuration(startTime, "сортування масиву Character");
     }
 
-    /**
-     * Метод для пошуку значення в масивi Character.
-     */
     private void searchArray() {
         long startTime = System.nanoTime();
-        
-        int index = Arrays.binarySearch(this.charArray, charValueToSearch);
-        
+        boolean found = Arrays.stream(charArray)
+                            .anyMatch(c -> c.equals(charValueToSearch));
         Utils.printOperationDuration(startTime, "пошук в масивi Character");
 
-        if (index >= 0) {
-            System.out.println("Значення '" + charValueToSearch + "' знайдено в масивi за iндексом: " + index);
-        } else {
-            System.out.println("Значення '" + charValueToSearch + "' в масивi не знайдено.");
-        }
+        System.out.println("Значення '" + charValueToSearch + "' " + (found ? "знайдено" : "не знайдено") + " в масиві.");
     }
 
     private void findMinAndMaxInArray() {
@@ -129,17 +79,12 @@ public class BasicDataOperationUsingQueue {
 
         long startTime = System.nanoTime();
 
-        Character min = charArray[0];
-        Character max = charArray[0];
-
-        for (Character value : charArray) {
-            if (value < min) {
-                min = value;
-            }
-            if (value > max) {
-                max = value;
-            }
-        }
+        Character min = Arrays.stream(charArray)
+                            .min(Character::compareTo)
+                            .orElse(null);
+        Character max = Arrays.stream(charArray)
+                            .max(Character::compareTo)
+                            .orElse(null);
 
         Utils.printOperationDuration(startTime, "пошук мiнiмального i максимального значення в масивi Character");
 
@@ -147,21 +92,13 @@ public class BasicDataOperationUsingQueue {
         System.out.println("Максимальне значення в масивi: " + max);
     }
 
-    /**
-     * Метод для пошуку значення в черзi Character.
-     */
     private void searchQueue() {
         long startTime = System.nanoTime();
-
-        boolean isFound = this.charQueue.contains(charValueToSearch);
-
+        boolean found = charQueue.stream()
+                                .anyMatch(c -> c.equals(charValueToSearch));
         Utils.printOperationDuration(startTime, "пошук в Queue Character");
 
-        if (isFound) {
-            System.out.println("Значення '" + charValueToSearch + "' знайдено в Queue");
-        } else {
-            System.out.println("Значення '" + charValueToSearch + "' в Queue не знайдено.");
-        }
+        System.out.println("Значення '" + charValueToSearch + "' " + (found ? "знайдено" : "не знайдено") + " в Queue.");
     }
 
     private void findMinAndMaxInQueue() {
@@ -172,8 +109,12 @@ public class BasicDataOperationUsingQueue {
 
         long startTime = System.nanoTime();
 
-        Character min = Collections.min(charQueue);
-        Character max = Collections.max(charQueue);
+        Character min = charQueue.stream()
+                                .min(Character::compareTo)
+                                .orElse(null);
+        Character max = charQueue.stream()
+                                .max(Character::compareTo)
+                                .orElse(null);
 
         Utils.printOperationDuration(startTime, "пошук мiнiмального i максимального значення в Queue");
 
@@ -198,9 +139,6 @@ public class BasicDataOperationUsingQueue {
     }
 }
 
-/**
- * Клас Utils мiститить допомiжнi методи для роботи з даними типу Character.
- */
 class Utils {
     static void printOperationDuration(long startTime, String operationName) {
         long endTime = System.nanoTime();
@@ -209,18 +147,13 @@ class Utils {
     }
 
     static Character[] readArrayFromFile(String pathToFile) {
-        List<Character> tempList = new ArrayList<>();
-
         try (BufferedReader br = new BufferedReader(new FileReader(pathToFile))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                tempList.add(line.charAt(0));
-            }
+            return br.lines()
+                     .map(line -> line.charAt(0))
+                     .toArray(Character[]::new);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Помилка читання даних з файлу: " + pathToFile, e);
         }
-
-        return tempList.toArray(new Character[0]);
     }
 
     static void writeArrayToFile(Character[] charArray, String pathToFile) {
